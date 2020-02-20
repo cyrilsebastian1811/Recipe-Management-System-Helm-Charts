@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "configMapName" . }}
+data:
+  WEBAPP_PORT: "3000"
+  DB_HOST_NAME: {{ .Values.rdsEndpoint }}
+  DB_DATABASE_NAME: csye7374
+  DB_PORT: "5432"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "dbsecretName" .}}
+type: Opaque
+stringData:
+  DB_USER: {{ .Values.dbUser }}
+  DB_PASSWORD: {{ .Values.dbPassword }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "dockerregistrykeyName" .}}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ template "imagePullSecret" . }}
+---  
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: {{template "backendreplicasetName" .}}
+  labels:
+    app: {{ template "labelName" .}}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: {{ template "labelName" .}}
+  template:
+    metadata:
+      labels:
+        app: {{ template "labelName" .}}
+    spec:
+      containers:
+      - name: {{ template "labelName" .}}
+        image: {{ .Values.dockerImage }}
+        env:
+        - name: WEBAPP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: WEBAPP_PORT
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "dbsecretName" .}} 
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "dbsecretName" .}} 
+              key: DB_PASSWORD
+        - name: DB_HOST_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: DB_HOST_NAME
+        - name: DB_DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: DB_DATABASE_NAME  
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: DB_PORT        
+        ports:
+          - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 100
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 100
+      imagePullSecrets:
+      - name: {{ template "dockerregistrykeyName" .}}   
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "serviceName" .}}
+  labels:
+    name: {{ template "labelName" .}}
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  selector:
+      app: {{ template "labelName" .}}      
