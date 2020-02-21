@@ -8,3 +8,10 @@ imageCredentials:
   password: ""
 
 dockerImage: ""
+
+s3Bucket: ""
+
+awsAccess: ""
+awsSecret: ""
+
+namespace: api

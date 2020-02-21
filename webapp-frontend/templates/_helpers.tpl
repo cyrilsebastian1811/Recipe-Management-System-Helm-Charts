@@ -1,63 +1,27 @@
-{{/* vim: set filetype=mustache: */}}
-{{/*
-Expand the name of the chart.
-*/}}
-{{- define "webapp-frontend.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
-*/}}
-{{- define "webapp-frontend.fullname" -}}
-{{- if .Values.fullnameOverride -}}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- if contains $name .Release.Name -}}
-{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
-{{- else -}}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "webapp-frontend.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
-Common labels
-*/}}
-{{- define "webapp-frontend.labels" -}}
-helm.sh/chart: {{ include "webapp-frontend.chart" . }}
-{{ include "webapp-frontend.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- define "imagePullSecret" }}
+{{- printf "{\"auths\": {\"%s\": {\"auth\": \"%s\"}}}" .Values.imageCredentials.registry (printf "%s:%s" .Values.imageCredentials.username .Values.imageCredentials.password | b64enc) | b64enc }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
 
-{{/*
-Selector labels
-*/}}
-{{- define "webapp-frontend.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "webapp-frontend.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end -}}
+{{- define "frontendreplicasetName" }}
+{{- printf "%s-%s" "frontendreplicaset" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
 
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "webapp-frontend.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-    {{ default (include "webapp-frontend.fullname" .) .Values.serviceAccount.name }}
-{{- else -}}
-    {{ default "default" .Values.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
+{{- define "labelName" }}
+{{- printf "%s-%s" "frontend" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "initContainerName" }}
+{{- printf "%s-%s" "frontendinitcontainer" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "initCommand" }}
+{{- printf "until nslookup %s.svc.cluster.local; do echo waiting for backend service; sleep 2; done;" .Values.internalBackendService }}
+{{- end }}
+
+{{- define "dockerregistrykeyName" }}
+{{- printf "%s-%s" "dockerregistrykey" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "serviceName" }}
+{{- printf "%s-%s" "frontendlb" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
