@@ -13,3 +13,5 @@ s3Bucket: ""
 
 awsAccess: ""
 awsSecret: ""
+
+namespace: api

@@ -1,55 +1,70 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Secret
 metadata:
-  name: {{ include "webapp-frontend.fullname" . }}
+  name: {{ template "dockerregistrykeyName" .}}
+  namespace: {{ .Values.namespace }}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ template "imagePullSecret" . }}
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: {{ template "frontendreplicasetName" .}}
   labels:
-    {{- include "webapp-frontend.labels" . | nindent 4 }}
+    app: {{ template "labelName" .}}
+  namespace: {{ .Values.namespace }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 3
   selector:
-    matchLabels:
-      {{- include "webapp-frontend.selectorLabels" . | nindent 6 }}
+    matchLabels: 
+      app: {{ template "labelName" . }}
   template:
     metadata:
+      name: {{ template "labelName" . }}
       labels:
-        {{- include "webapp-frontend.selectorLabels" . | nindent 8 }}
+        app: {{ template "labelName" . }}
     spec:
-    {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
-      serviceAccountName: {{ include "webapp-frontend.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: {{ template "initContainerName" . }}
+          image: busybox:1.28
+          command: ['sh', '-c', {{ include "initCommand" . | squote }}]
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: {{ template "labelName" . }}
+          image: {{ .Values.dockerImage }} 
+          imagePullPolicy: Always
+          env:
+            - name: REACT_APP_BACKEND_ENDPOINT
+              value: {{ .Values.backendServiceEndpoint }} 
           ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
+            - containerPort: 3000
           readinessProbe:
             httpGet:
               path: /
-              port: http
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-    {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 100
+      imagePullSecrets:
+        - name: {{ template "dockerregistrykeyName" .}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "serviceName" .}}
+  labels:
+    name: {{ template "labelName" .}}
+  namespace: ui
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  selector: 
+      app: {{ template "labelName" .}}   
