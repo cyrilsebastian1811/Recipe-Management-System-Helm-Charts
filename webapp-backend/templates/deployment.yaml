@@ -7,6 +7,7 @@ data:
   DB_HOST_NAME: {{ .Values.rdsEndpoint }}
   DB_DATABASE_NAME: csye7374
   DB_PORT: "5432"
+  S3_BUCKET: {{ .Values.s3Bucket }}
 ---
 apiVersion: v1
 kind: Secret
@@ -17,6 +18,15 @@ stringData:
   DB_USER: {{ .Values.dbUser }}
   DB_PASSWORD: {{ .Values.dbPassword }}
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "awssecretName" .}}
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: {{ .Values.awsAccess }}
+  AWS_SECRET_ACCESS_KEY: {{ .Values.awsSecret }}
+---  
 apiVersion: v1
 kind: Secret
 metadata:
@@ -60,6 +70,16 @@ spec:
             secretKeyRef:
               name: {{ template "dbsecretName" .}} 
               key: DB_PASSWORD
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "awssecretName" .}} 
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "awssecretName" .}} 
+              key: AWS_SECRET_ACCESS_KEY      
         - name: DB_HOST_NAME
           valueFrom:
             configMapKeyRef:
@@ -74,7 +94,12 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: {{ template "configMapName" . }}
-              key: DB_PORT        
+              key: DB_PORT
+        - name: S3_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: S3_BUCKET              
         ports:
           - containerPort: 3000
         readinessProbe:
