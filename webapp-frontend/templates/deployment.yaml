@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "dockerregistrykeyName" .}}
+  namespace: {{ .Values.namespace }}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ template "imagePullSecret" . }}
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: {{ template "frontendreplicasetName" .}}
+  labels:
+    app: {{ template "labelName" .}}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 3
+  selector:
+    matchLabels: 
+      app: {{ template "labelName" . }}
+  template:
+    metadata:
+      name: {{ template "labelName" . }}
+      labels:
+        app: {{ template "labelName" . }}
+    spec:
+      initContainers:
+        - name: {{ template "initContainerName" . }}
+          image: busybox:1.28
+          command: ['sh', '-c', {{ include "initCommand" . | squote }}]
+      containers:
+        - name: {{ template "labelName" . }}
+          image: {{ .Values.dockerImage }} 
+          imagePullPolicy: Always
+          env:
+            - name: REACT_APP_BACKEND_ENDPOINT
+              value: {{ .Values.backendServiceEndpoint }} 
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 100
+      imagePullSecrets:
+        - name: {{ template "dockerregistrykeyName" .}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "serviceName" .}}
+  labels:
+    name: {{ template "labelName" .}}
+  namespace: ui
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  selector: 
+      app: {{ template "labelName" .}}   

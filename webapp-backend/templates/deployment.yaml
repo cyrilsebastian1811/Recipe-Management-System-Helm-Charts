@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "configMapName" . }}
+  namespace: {{ .Values.namespace }}
+data:
+  WEBAPP_PORT: "3000"
+  DB_HOST_NAME: {{ .Values.rdsEndpoint }}
+  DB_DATABASE_NAME: csye7374
+  DB_PORT: "5432"
+  S3_BUCKET: {{ .Values.s3Bucket }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "dbsecretName" .}}
+  namespace: {{ .Values.namespace }}
+type: Opaque
+stringData:
+  DB_USER: {{ .Values.dbUser }}
+  DB_PASSWORD: {{ .Values.dbPassword }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "awssecretName" .}}
+  namespace: {{ .Values.namespace }}
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: {{ .Values.awsAccess }}
+  AWS_SECRET_ACCESS_KEY: {{ .Values.awsSecret }}
+---  
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "dockerregistrykeyName" .}}
+  namespace: {{ .Values.namespace }}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ template "imagePullSecret" . }}
+---  
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: {{template "backendreplicasetName" .}}
+  labels:
+    app: {{ template "labelName" .}}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: {{ template "labelName" .}}
+  template:
+    metadata:
+      labels:
+        app: {{ template "labelName" .}}
+    spec:
+      containers:
+      - name: {{ template "labelName" .}}
+        image: {{ .Values.dockerImage }}
+        env:
+        - name: WEBAPP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: WEBAPP_PORT
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "dbsecretName" .}} 
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "dbsecretName" .}} 
+              key: DB_PASSWORD
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "awssecretName" .}} 
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "awssecretName" .}} 
+              key: AWS_SECRET_ACCESS_KEY      
+        - name: DB_HOST_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: DB_HOST_NAME
+        - name: DB_DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: DB_DATABASE_NAME  
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: DB_PORT
+        - name: S3_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: S3_BUCKET              
+        ports:
+          - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 100
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 100
+      imagePullSecrets:
+      - name: {{ template "dockerregistrykeyName" .}}   
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "serviceName" .}}
+  labels:
+    name: {{ template "labelName" .}}
+  namespace: {{ .Values.namespace }}
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  selector:
+      app: {{ template "labelName" .}}      

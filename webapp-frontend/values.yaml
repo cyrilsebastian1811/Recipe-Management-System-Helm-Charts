@@ -1,0 +1,12 @@
+imageCredentials:
+  registry: ""
+  username: ""
+  password: ""
+
+namespace: ui
+
+internalBackendService: ""
+
+dockerImage: ""
+
+backendServiceEndpoint: ""

@@ -1,0 +1,17 @@
+dbUser: ""
+dbPassword: ""
+rdsEndpoint: ""
+
+imageCredentials:
+  registry: ""
+  username: ""
+  password: ""
+
+dockerImage: ""
+
+s3Bucket: ""
+
+awsAccess: ""
+awsSecret: ""
+
+namespace: api
