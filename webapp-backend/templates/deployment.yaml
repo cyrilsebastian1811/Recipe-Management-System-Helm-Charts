@@ -9,6 +9,10 @@ data:
   DB_DATABASE_NAME: csye7374
   DB_PORT: "5432"
   S3_BUCKET: {{ .Values.s3Bucket }}
+  REDIS_HOST: {{ .Values.redisHost }}
+  REDIS_PORT: {{ .Values.redisPort | quote }}
+  SENTINEL_PORT: {{ .Values.sentinelPort | quote }}
+  ENVIRONMENT: {{ .Values.environment }}
 ---
 apiVersion: v1
 kind: Secret
@@ -29,6 +33,15 @@ type: Opaque
 stringData:
   AWS_ACCESS_KEY_ID: {{ .Values.awsAccess }}
   AWS_SECRET_ACCESS_KEY: {{ .Values.awsSecret }}
+---  
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "redisSecretName" .}}
+  namespace: {{ .Values.namespace }}
+type: Opaque
+stringData:
+  REDIS_PASSWORD: {{ .Values.redis.global.redis.password }}
 ---  
 apiVersion: v1
 kind: Secret
@@ -56,6 +69,10 @@ spec:
       labels:
         app: {{ template "labelName" .}}
     spec:
+      initContainers:
+        - name: {{ template "initContainerName" . }}
+          image: goodsmileduck/redis-cli:latest
+          command: ['redis-cli', '-h', {{ .Values.redisHost | squote }}, '-p', {{ .Values.redisPort | squote }}, '-a', {{ .Values.redis.global.redis.password | squote }}, 'SET test 1 EX 10']
       containers:
       - name: {{ template "labelName" .}}
         image: {{ .Values.dockerImage }}
@@ -104,7 +121,32 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: {{ template "configMapName" . }}
-              key: S3_BUCKET              
+              key: S3_BUCKET
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: REDIS_PORT
+        - name: SENTINEL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: SENTINEL_PORT      
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ template "configMapName" . }}
+              key: ENVIRONMENT       
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "redisSecretName" . }}
+              key: REDIS_PASSWORD                         
         ports:
           - containerPort: 3000
         readinessProbe:
@@ -119,6 +161,12 @@ spec:
             port: 3000
           initialDelaySeconds: 10
           periodSeconds: 100
+        livenessProbe:
+          httpGet:
+            path: /testCache?key=foo&val=bar
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 100  
       imagePullSecrets:
       - name: {{ template "dockerregistrykeyName" .}}   
 ---
