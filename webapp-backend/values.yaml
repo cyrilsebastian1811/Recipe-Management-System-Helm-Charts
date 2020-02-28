@@ -15,3 +15,22 @@ awsAccess: ""
 awsSecret: ""
 
 namespace: api
+
+redisHost: example-redis.api.svc.cluster.local
+redisPort: 6379
+sentinelPort: 26379
+
+environment: production
+
+redis:
+  global:
+    redis:
+      password: ""
+  cluster:
+    enabled: true
+  sentinel:
+    enabled: true
+    usePassword: false
+  master:
+    readinessProbe:
+      failureThreshold: 3

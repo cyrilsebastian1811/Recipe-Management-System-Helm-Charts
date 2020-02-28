@@ -30,3 +30,11 @@
 {{- printf "%s-%s" "awssecret" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
+{{- define "redisSecretName" }}
+{{- printf "%s-%s" "redissecret" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "initContainerName" }}
+{{- printf "%s-%s" "initcontainer" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+

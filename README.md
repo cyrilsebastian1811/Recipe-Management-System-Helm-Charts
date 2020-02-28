@@ -12,7 +12,7 @@
 This is a repository to store helm charts that deploy the backend and frontend of our application on a kubernetes cluster.
 
 # To install chart
-helm install example ./webapp-backend -n api --set dbUser=team,dbPassword=,imageCredentials.username=suhas1602,imageCredentials.password=,rdsEndpoint=csye7374-db.cqbcoqyivrty.us-east-1.rds.amazonaws.com,dockerImage=suhas1602/webapp-backend:ec188de2fe4ca01d41a8f19fbe48a00c82444f72,s3Bucket=webapp.suhaspasricha.com,awsAccess=,awsSecret=,imageCredentials.registry=https://index.docker.io/v1/
+helm install example ./webapp-backend -n api --set dbUser=team,dbPassword=,imageCredentials.username=suhas1602,imageCredentials.password=,rdsEndpoint=csye7374-db.cqbcoqyivrty.us-east-1.rds.amazonaws.com,dockerImage=suhas1602/webapp-backend:dev3,s3Bucket=webapp.suhaspasricha.com,awsAccess=,awsSecret=,redis.global.redis.password=,imageCredentials.registry=https://index.docker.io/v1/
 
 # To uninstall chart
 helm uninstall example -n api
