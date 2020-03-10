@@ -26,7 +26,6 @@ pipeline {
                         userRemoteConfigs: [[
                             credentialsId: 'GitToken', 
                             url: "${GIT_URL}"
-                            'https://github.com/cyrilsebastian1811/helm-charts.git'
                         ]]
                     ])
 
