@@ -5,7 +5,7 @@ imageCredentials:
   registry: https://index.docker.io/v1/
   username: ""
   password: ""
-dockerImage: cyrilsebastian1811/backend:684b145
+dockerImage: cyrilsebastian1811/backend:b180ffa
 s3Bucket: ""
 awsAccess: ""
 awsSecret: ""
