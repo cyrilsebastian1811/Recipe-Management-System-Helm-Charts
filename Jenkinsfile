@@ -36,21 +36,21 @@ pipeline {
                 echo "${git_hash}"
             }
         }
-        stage('Build Backend Helm Chart installation') { 
-            when {
-                expression { return sh(returnStdout: true, script: "helm list --filter 'backend+' -q && ") === }
-            }
+        stage('Build Backend Helm Chart installation') {
             steps {
                 script {
                     sh "pwd"
                     sh "ls -a"
-                    // try{
-                    //     sh("helm status backend")
-                    //     sh "helm upgrade backend ./webapp-backend -n api --set dbUser=${DB_CREDENTIALS_USR},dbPassword=${DB_CREDENTIALS_PSW},imageCredentials.username=${DOCKERHUB_CREDENTIALS_USR},imageCredentials.password=${DOCKERHUB_CREDENTIALS_PSW},rdsEndpoint=${RDS_ENDPOINT},s3Bucket=${S3_BUCKET_URL},awsAccess=${AWS_ACCESS_KEY_ID},awsSecret=${AWS_SECRET_ACCESS_KEY},imageCredentials.registry=https://index.docker.io/v1/"
-                    // }catch (exc) {
-                    //     sh "helm install backend ./webapp-backend -n api --set dbUser=${DB_CREDENTIALS_USR},dbPassword=${DB_CREDENTIALS_PSW},imageCredentials.username=${DOCKERHUB_CREDENTIALS_USR},imageCredentials.password=${DOCKERHUB_CREDENTIALS_PSW},rdsEndpoint=${RDS_ENDPOINT},s3Bucket=${S3_BUCKET_URL},awsAccess=${AWS_ACCESS_KEY_ID},awsSecret=${AWS_SECRET_ACCESS_KEY},imageCredentials.registry=https://index.docker.io/v1/"
-                    // }
                     sh "helm upgrade backend ./webapp-backend -n api --install --set dbUser=${DB_CREDENTIALS_USR},dbPassword=${DB_CREDENTIALS_PSW},imageCredentials.username=${DOCKERHUB_CREDENTIALS_USR},imageCredentials.password=${DOCKERHUB_CREDENTIALS_PSW},rdsEndpoint=${RDS_ENDPOINT},s3Bucket=${S3_BUCKET_URL},awsAccess=${AWS_ACCESS_KEY_ID},awsSecret=${AWS_SECRET_ACCESS_KEY},redis.global.redis.password=${REDIS_PSW},imageCredentials.registry=https://index.docker.io/v1/"
+                }
+            }
+        }
+        stage('Build Frontend Helm Chart installation') {
+            steps {
+                script {
+                    sh "pwd"
+                    sh "ls -a"
+                    sh "helm upgrade frontend ./webapp-frontend -n ui --install --set imageCredentials.username=${DOCKERHUB_CREDENTIALS_USR},imageCredentials.password=${DOCKERHUB_CREDENTIALS_PSW},internalBackendService=lb-backend.api,backendServiceEndpoint=${BACKEND_ENDPOINT},imageCredentials.registry=https://index.docker.io/v1/"
                 }
             }
         }

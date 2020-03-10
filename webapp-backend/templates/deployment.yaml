@@ -51,7 +51,8 @@ metadata:
 type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: {{ template "imagePullSecret" . }}
----  
+---
+{{ if .Values.dockerImage }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -175,8 +176,10 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 100  
       imagePullSecrets:
-      - name: {{ template "dockerregistrykeyName" .}}   
+      - name: {{ template "dockerregistrykeyName" .}}
+{{ end }}
 ---
+{{ if .Values.dockerImage }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -191,4 +194,5 @@ spec:
       port: 3000
       targetPort: 3000
   selector:
-      app: {{ template "labelName" .}}      
+      app: {{ template "labelName" .}}
+{{ end }} 
