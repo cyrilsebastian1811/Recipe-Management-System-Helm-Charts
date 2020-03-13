@@ -36,9 +36,9 @@ helm install example2 ./webapp-frontend -n ui --set imageCredentials.username=su
 2. db_credentials(type: Username and Password) --> Username: team, Password: Qwerty123
 2. github-ssh(SSH) --> Username: github, Private Key(contents of cyril_work from local)
 3. kubernetes_credentials(Username and Password) --> Username: admin, Password: (~/.kube/config/users:password | base64 )
-4. AWS_ACCESS_KEY_ID(type: secret text) -> xxxxxxxxxxxxx
+<!-- 4. AWS_ACCESS_KEY_ID(type: secret text) -> xxxxxxxxxxxxx
 5. AWS_SECRET_ACCESS_KEY(type: secret text) -> xxxxxxxxxxxxx
-6. REDIS_PSW(type: secret text) -> xxxxxxxxxxx
+6. REDIS_PSW(type: secret text) -> xxxxxxxxxxx -->
 
 ### Configuration for Pipeline
 #### Strig Parameters
