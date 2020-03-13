@@ -14,9 +14,47 @@ This is a repository to store helm charts that deploy the backend and frontend o
 # To install chart
 helm install example ./webapp-backend -n api --set dbUser=team,dbPassword=,imageCredentials.username=suhas1602,imageCredentials.password=,rdsEndpoint=csye7374-db.cqbcoqyivrty.us-east-1.rds.amazonaws.com,dockerImage=suhas1602/webapp-backend:dev3,s3Bucket=webapp.suhaspasricha.com,awsAccess=,awsSecret=,redis.global.redis.password=,imageCredentials.registry=https://index.docker.io/v1/
 
+
 # To uninstall chart
 helm uninstall example -n api
 
 
 # Frontend chart
 helm install example2 ./webapp-frontend -n ui --set imageCredentials.username=suhas1602,imageCredentials.password=,internalBackendService=backendlb-example.api,dockerImage=suhas1602/webapp-frontend:2a1e4eb5d195682b40d85d78b8d8085d2b351561,backendServiceEndpoint=http://a510804d8cb74426d960b71c9faccc01-1367718300.us-east-1.elb.amazonaws.com:3000,imageCredentials.registry=https://index.docker.io/v1/
+
+
+## Jenkins
+
+### Plugins to be Installed
+1. GitHub Integration
+2. Kubernetes CLI
+3. SSH Agent
+
+### Global Credentials
+1. dockerhub_credentials(type: Username and Password) --> Username: cyrilsebastian1811, Password: xxxxxxxxxx
+2. db_credentials(type: Username and Password) --> Username: team, Password: Qwerty123
+2. github-ssh(SSH) --> Username: github, Private Key(contents of cyril_work from local)
+3. kubernetes_credentials(Username and Password) --> Username: admin, Password: (~/.kube/config/users:password | base64 )
+4. AWS_ACCESS_KEY_ID(type: secret text) -> xxxxxxxxxxxxx
+5. AWS_SECRET_ACCESS_KEY(type: secret text) -> xxxxxxxxxxxxx
+6. REDIS_PSW(type: secret text) -> xxxxxxxxxxx
+
+### Configuration for Pipeline
+#### Strig Parameters
+1. GIT_URL --> git@github.com:cyrilsebastian1811/helm-charts.git
+2. S3_BUCKET_URL --> webapp.dev.cyril-sebastian.com
+3. RDS_ENDPOINT --> csye7374-db.cz6rkkjdva3j.us-east-1.rds.amazonaws.com
+4. BACKEND_ENDPOINT --> https://localhost
+5. KUBERNETES_API --> https://api.k8.dev.cyril-sebastian.com
+#### Credentials Parameters
+1. DOCKERHUB_CREDENTIALS --> credentials(DOCKERHUB_CREDENTIALS)
+2. DB_CREDENTIALS --> credentials(DB_CREDENTIALS)
+3. AWS_ACCESS_KEY_ID --> credentials(AWS_ACCESS_KEY_ID)
+4. AWS_SECRET_ACCESS_KEY --> credentials(AWS_SECRET_ACCESS_KEY)
+5. REDIS_PSW --> credentials(REDIS_PSW)
+
+
+#### Configure System
+1. Manage Jenkins -> Configure System -> Cloud -> Kubernetes:
+Kubernetes server certificate key: (~/.kube/config/clusters:certificate-authority-data | base64decode )
+Credentials: kubernetes_credentials  
