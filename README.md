@@ -28,7 +28,8 @@ helm install example2 ./webapp-frontend -n ui --set imageCredentials.username=su
 ### Plugins to be Installed
 1. GitHub Integration
 2. Kubernetes CLI
-3. SSH Agent
+3. Kubernetes
+4. SSH Agent
 
 ### Global Credentials
 1. dockerhub_credentials(type: Username and Password) --> Username: cyrilsebastian1811, Password: xxxxxxxxxx
@@ -49,6 +50,7 @@ helm install example2 ./webapp-frontend -n ui --set imageCredentials.username=su
 #### Credentials Parameters
 1. DOCKERHUB_CREDENTIALS --> credentials(DOCKERHUB_CREDENTIALS)
 2. DB_CREDENTIALS --> credentials(DB_CREDENTIALS)
+#### Password Parameters
 3. AWS_ACCESS_KEY_ID --> credentials(AWS_ACCESS_KEY_ID)
 4. AWS_SECRET_ACCESS_KEY --> credentials(AWS_SECRET_ACCESS_KEY)
 5. REDIS_PSW --> credentials(REDIS_PSW)
