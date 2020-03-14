@@ -9,7 +9,7 @@ data:
   DB_DATABASE_NAME: csye7374
   DB_PORT: "5432"
   S3_BUCKET: {{ .Values.s3Bucket }}
-  REDIS_HOST: {{ .Values.redisHost }}
+  REDIS_HOST: {{ include "redisHost" . | squote }}
   REDIS_PORT: {{ .Values.redisPort | quote }}
   SENTINEL_PORT: {{ .Values.sentinelPort | quote }}
   ENVIRONMENT: {{ .Values.environment }}
@@ -51,16 +51,24 @@ metadata:
 type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: {{ template "imagePullSecret" . }}
----  
+---
+{{ if .Values.dockerImage }}
 apiVersion: apps/v1
-kind: ReplicaSet
+kind: Deployment
 metadata:
-  name: {{template "backendreplicasetName" .}}
+  name: {{template "deploymentName" .}}
   labels:
     app: {{ template "labelName" .}}
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 3
+  minReadySeconds: 10
+  revisionHistoryLimit: 3
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: {{ template "labelName" .}}
@@ -72,7 +80,7 @@ spec:
       initContainers:
         - name: {{ template "initContainerName" . }}
           image: goodsmileduck/redis-cli:latest
-          command: ['redis-cli', '-h', {{ .Values.redisHost | squote }}, '-p', {{ .Values.redisPort | squote }}, '-a', {{ .Values.redis.global.redis.password | squote }}, 'SET test 1 EX 10']
+          command: ['redis-cli', '-h', {{ include "redisHost" . | squote }}, '-p', {{ .Values.redisPort | squote }}, '-a', {{ .Values.redis.global.redis.password | squote }}, 'SET test 1 EX 10']
       containers:
       - name: {{ template "labelName" .}}
         image: {{ .Values.dockerImage }}
@@ -168,8 +176,10 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 100  
       imagePullSecrets:
-      - name: {{ template "dockerregistrykeyName" .}}   
+      - name: {{ template "dockerregistrykeyName" .}}
+{{ end }}
 ---
+{{ if .Values.dockerImage }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -184,4 +194,5 @@ spec:
       port: 3000
       targetPort: 3000
   selector:
-      app: {{ template "labelName" .}}      
+      app: {{ template "labelName" .}}
+{{ end }} 

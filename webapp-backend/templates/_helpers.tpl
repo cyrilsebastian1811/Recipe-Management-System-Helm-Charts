@@ -14,16 +14,16 @@
 {{- printf "%s-%s" "dockerregistrykey" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
-{{- define "backendreplicasetName" }}
-{{- printf "%s-%s" "backendreplicaset" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- define "deploymentName" }}
+{{- printf "%s-%s" "deployment" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
 {{- define "labelName" }}
-{{- printf "%s-%s" "backend" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
 {{- define "serviceName" }}
-{{- printf "%s-%s" "backendlb" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s" "lb" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
 {{- define "awssecretName" }}
@@ -38,3 +38,6 @@
 {{- printf "%s-%s" "initcontainer" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
+{{- define "redisHost" }}
+{{- printf "%s-redis.%s.svc.cluster.local" .Release.Name .Release.Namespace }}
+{{- end }}

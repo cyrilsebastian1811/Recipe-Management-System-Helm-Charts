@@ -7,15 +7,23 @@ type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: {{ template "imagePullSecret" . }}
 ---
+{{ if .Values.dockerImage }}
 apiVersion: apps/v1
-kind: ReplicaSet
+kind: Deployment
 metadata:
-  name: {{ template "frontendreplicasetName" .}}
+  name: {{template "deploymentName" .}}
   labels:
     app: {{ template "labelName" .}}
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 3
+  minReadySeconds: 10
+  revisionHistoryLimit: 3
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels: 
       app: {{ template "labelName" . }}
@@ -52,7 +60,9 @@ spec:
             periodSeconds: 100
       imagePullSecrets:
         - name: {{ template "dockerregistrykeyName" .}}
+{{ end }}
 ---
+{{ if .Values.dockerImage }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -67,4 +77,5 @@ spec:
       port: 3000
       targetPort: 3000
   selector: 
-      app: {{ template "labelName" .}}   
+      app: {{ template "labelName" .}}
+{{ end }}

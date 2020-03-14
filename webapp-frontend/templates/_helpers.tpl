@@ -2,12 +2,12 @@
 {{- printf "{\"auths\": {\"%s\": {\"auth\": \"%s\"}}}" .Values.imageCredentials.registry (printf "%s:%s" .Values.imageCredentials.username .Values.imageCredentials.password | b64enc) | b64enc }}
 {{- end }}
 
-{{- define "frontendreplicasetName" }}
-{{- printf "%s-%s" "frontendreplicaset" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- define "deploymentName" }}
+{{- printf "%s-%s" "deployment" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
 {{- define "labelName" }}
-{{- printf "%s-%s" "frontend" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
 {{- define "initContainerName" }}
@@ -23,5 +23,5 @@
 {{- end }}
 
 {{- define "serviceName" }}
-{{- printf "%s-%s" "frontendlb" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s" "lb" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
