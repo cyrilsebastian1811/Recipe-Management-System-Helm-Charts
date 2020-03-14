@@ -30,6 +30,7 @@ helm install example2 ./webapp-frontend -n ui --set imageCredentials.username=su
 2. Kubernetes CLI
 3. Kubernetes
 4. SSH Agent
+5. Generic Webhook Trigger
 
 ### Global Credentials
 1. dockerhub_credentials(type: Username and Password) --> Username: cyrilsebastian1811, Password: xxxxxxxxxx
@@ -37,26 +38,30 @@ helm install example2 ./webapp-frontend -n ui --set imageCredentials.username=su
 2. github-ssh(SSH) --> Username: github, Private Key(contents of cyril_work from local)
 3. kubernetes_credentials(Username and Password) --> Username: admin, Password: (~/.kube/config/users:password | base64 )
 
+#### Configure System
+1. Manage Jenkins -> Configure System -> Cloud -> Kubernetes:
+```
+Kubernetes server certificate key: (~/.kube/config/clusters:certificate-authority-data | base64decode )
+Credentials: kubernetes_credentials
+```
+2. Manage Jenkins -> Configure System -> Git plugin:
+```
+Global Config user.name Value: Jenkins
+```
+
 ### Configuration for Pipeline
 #### Build Triggers
 1. Generic Webhook Trigger:
-Token: Edxzaw1!
-
+```
+Token: QAZwsx123>
+```
 #### Strig Parameters
-1. GIT_URL --> git@github.com:cyrilsebastian1811/helm-charts.git
-2. S3_BUCKET_URL --> webapp.dev.cyril-sebastian.com
-3. RDS_ENDPOINT --> csye7374-db.cz6rkkjdva3j.us-east-1.rds.amazonaws.com
-4. BACKEND_ENDPOINT --> https://localhost
+1. GIT_URL --> git@github.com:cyrilsebastian1811/webapp-backend.git
+2. GIT_BRANCH --> a8
+3. S3_BUCKET_URL --> webapp.dev.cyril-sebastian.com
+4. RDS_ENDPOINT --> csye7374-db.cz6rkkjdva3j.us-east-1.rds.amazonaws.com
 5. KUBERNETES_API --> https://api.k8.dev.cyril-sebastian.com
 #### Password Parameters
 3. AWS_ACCESS_KEY_ID --> xxxxxxxxxxxxxxx
 4. AWS_SECRET_ACCESS_KEY --> xxxxxxxxxxxxxxx
 5. REDIS_PSW --> Yhbvft123@
-
-
-#### Configure System
-1. Manage Jenkins -> Configure System -> Cloud -> Kubernetes:
-Kubernetes server certificate key: (~/.kube/config/clusters:certificate-authority-data | base64decode )
-Credentials: kubernetes_credentials  
-2. Manage Jenkins -> Configure System -> Git plugin:
-Global Config user.name Value: Jenkins
