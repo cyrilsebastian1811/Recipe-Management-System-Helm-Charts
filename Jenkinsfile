@@ -39,7 +39,7 @@ pipeline {
             steps {
                 script {
                     git_message = sh(returnStdout: true, script: "git log --format=%B -n 1 ${git_commit}")
-                    scope = sh(returnStdout: true, script: "(echo \"$git_message\" | grep -Eq  ^.*backend.*) && echo \"backend\" || echo \"frontend\"")
+                    scope = sh(returnStdout: true, script: "(echo \"$git_message\" | grep -Eq  ^.*backend.*) && echo \"backend\" || echo \"none\"")
                     scope = sh(returnStdout: true, script: "(echo \"$git_message\" | grep -Eq  ^.*frontend.*) && echo \"frontend\" || echo \"${scope}\"")
                     scope = scope.replaceAll("[\n\r]", "")
 
