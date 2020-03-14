@@ -5,40 +5,50 @@ pipeline {
         skipDefaultCheckout(true)
     }
     environment {
-        // backend parameters
+        // Srting Parameters
+        GIT_URL = "${env.GIT_URL}"
+        GIT_BRANCH = "${env.GIT_BRANCH}"
         S3_BUCKET_URL = "${env.S3_BUCKET_URL}"
         RDS_ENDPOINT = "${env.RDS_ENDPOINT}"
+        KUBERNETES_API = "${env.KUBERNETES_API}"
+
+        // Password Parameters
         AWS_ACCESS_KEY_ID = "${env.AWS_ACCESS_KEY_ID}"
         AWS_SECRET_ACCESS_KEY = "${env.AWS_SECRET_ACCESS_KEY}"
         REDIS_PSW = "${env.REDIS_PSW}"
-        DB_CREDENTIALS = credentials('db_credentials')
 
         // common parameters
-        git_hash = null
-        GIT_URL = "${env.GIT_URL}"
         DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
-        KUBERNETES_API = "${env.KUBERNETES_API}"
+        DB_CREDENTIALS = credentials('db_credentials')
+
+        // Default Parameters
+        git_commit = null
+        git_message = null
+        scope = null
     }
     stages {
         stage('Checkout helm-charts') { 
             steps {
                 script {
-                    git_info = checkout([
-                        $class: 'GitSCM', branches: [[name: "*/${env.GIT_BRANCH}"]], 
-                        doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], 
-                        userRemoteConfigs: [[
-                            credentialsId: 'GitToken', 
-                            url: "${GIT_URL}"
-                        ]]
-                    ])
-
-                    git_hash = "${git_info.GIT_COMMIT[0..6]}"
+                    git_info = git branch: "${GIT_BRANCH}", credentialsId: "github-ssh", url: "${GIT_URL}"
+                    git_commit = "${git_info.GIT_COMMIT}"
                 }
-
-                echo "${git_hash}"
+            }
+        }
+        stage('Build Logic') {
+            steps {
+                script {
+                    git_message = sh(returnStdout: true, script: "git log --format=%B -n 1 ${git_commit}")
+                    scope = sh(returnStdout: true, script: "(echo \"$git_message\" | grep -Eq  ^.*backend.*) && echo \"backend\" || echo \"frontend\"")
+                    scope = sh(returnStdout: true, script: "(echo \"$git_message\" | grep -Eq  ^.*frontend.*) && echo \"frontend\" || echo \"${scope}\"")
+                    scope = scope.replaceAll("[\n\r]", "")
+                }
             }
         }
         stage('Build Backend Helm Chart installation') {
+            when {
+                expression { scope == "backend" }
+            }
             steps {
                 script {
                     sh "pwd"
@@ -52,6 +62,9 @@ pipeline {
             }
         }
         stage('Build Frontend Helm Chart installation') {
+            when {
+                expression { scope == "frontend" }
+            }
             steps {
                 script {
                     sh "pwd"

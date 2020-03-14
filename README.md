@@ -36,27 +36,27 @@ helm install example2 ./webapp-frontend -n ui --set imageCredentials.username=su
 2. db_credentials(type: Username and Password) --> Username: team, Password: Qwerty123
 2. github-ssh(SSH) --> Username: github, Private Key(contents of cyril_work from local)
 3. kubernetes_credentials(Username and Password) --> Username: admin, Password: (~/.kube/config/users:password | base64 )
-<!-- 4. AWS_ACCESS_KEY_ID(type: secret text) -> xxxxxxxxxxxxx
-5. AWS_SECRET_ACCESS_KEY(type: secret text) -> xxxxxxxxxxxxx
-6. REDIS_PSW(type: secret text) -> xxxxxxxxxxx -->
 
 ### Configuration for Pipeline
+#### Build Triggers
+1. Generic Webhook Trigger:
+Token: Edxzaw1!
+
 #### Strig Parameters
 1. GIT_URL --> git@github.com:cyrilsebastian1811/helm-charts.git
 2. S3_BUCKET_URL --> webapp.dev.cyril-sebastian.com
 3. RDS_ENDPOINT --> csye7374-db.cz6rkkjdva3j.us-east-1.rds.amazonaws.com
 4. BACKEND_ENDPOINT --> https://localhost
 5. KUBERNETES_API --> https://api.k8.dev.cyril-sebastian.com
-#### Credentials Parameters
-1. DOCKERHUB_CREDENTIALS --> credentials(DOCKERHUB_CREDENTIALS)
-2. DB_CREDENTIALS --> credentials(DB_CREDENTIALS)
 #### Password Parameters
-3. AWS_ACCESS_KEY_ID --> credentials(AWS_ACCESS_KEY_ID)
-4. AWS_SECRET_ACCESS_KEY --> credentials(AWS_SECRET_ACCESS_KEY)
-5. REDIS_PSW --> credentials(REDIS_PSW)
+3. AWS_ACCESS_KEY_ID --> xxxxxxxxxxxxxxx
+4. AWS_SECRET_ACCESS_KEY --> xxxxxxxxxxxxxxx
+5. REDIS_PSW --> Yhbvft123@
 
 
 #### Configure System
 1. Manage Jenkins -> Configure System -> Cloud -> Kubernetes:
 Kubernetes server certificate key: (~/.kube/config/clusters:certificate-authority-data | base64decode )
 Credentials: kubernetes_credentials  
+2. Manage Jenkins -> Configure System -> Git plugin:
+Global Config user.name Value: Jenkins
