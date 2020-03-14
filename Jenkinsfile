@@ -42,6 +42,8 @@ pipeline {
                     scope = sh(returnStdout: true, script: "(echo \"$git_message\" | grep -Eq  ^.*backend.*) && echo \"backend\" || echo \"frontend\"")
                     scope = sh(returnStdout: true, script: "(echo \"$git_message\" | grep -Eq  ^.*frontend.*) && echo \"frontend\" || echo \"${scope}\"")
                     scope = scope.replaceAll("[\n\r]", "")
+
+                    echo "${scope}"
                 }
             }
         }
