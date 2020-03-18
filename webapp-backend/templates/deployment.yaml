@@ -76,6 +76,9 @@ spec:
     metadata:
       labels:
         app: {{ template "labelName" .}}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"  
     spec:
       initContainers:
         - name: {{ template "initContainerName" . }}
