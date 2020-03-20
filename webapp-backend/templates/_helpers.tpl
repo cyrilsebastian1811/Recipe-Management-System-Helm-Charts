@@ -38,6 +38,18 @@
 {{- printf "%s-%s" "initcontainer" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
+{{- define "serviceAccountName" }}
+{{- printf "%s-%s" "sa" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "roleName" }}
+{{- printf "%s-%s" "role" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "roleBindingName" }}
+{{- printf "%s-%s" "rolebinding" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
 {{- define "redisHost" }}
 {{- printf "%s-redis.%s.svc.cluster.local" .Release.Name .Release.Namespace }}
 {{- end }}
