@@ -25,3 +25,15 @@
 {{- define "serviceName" }}
 {{- printf "%s-%s" "lb" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
+
+{{- define "serviceAccountName" }}
+{{- printf "%s-%s" "sa" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "roleName" }}
+{{- printf "%s-%s" "role" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "roleBindingName" }}
+{{- printf "%s-%s" "rolebinding" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
