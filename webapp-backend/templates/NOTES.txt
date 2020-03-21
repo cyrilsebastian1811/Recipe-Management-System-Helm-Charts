@@ -2,3 +2,48 @@ NOTE: It may take a few minutes for the LoadBalancer IP to be available.
            You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ template "serviceName" . }}'
   export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ template "serviceName" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo http://$SERVICE_IP:3000
+
+
+---
+{{ if .Values.dockerImage }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "serviceName" .}}
+  labels:
+    name: {{ template "labelName" .}}
+  # namespace: {{ .Values.namespace }}
+spec:
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  selector:
+      app: {{ template "labelName" .}}
+{{ end }}
+---
+{{ if .Values.dockerImage }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "ingressName" .}}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls: # < placing a host in the TLS config will indicate a certificate should be created
+    - hosts:
+        - {{ template "webappDomainName" .}}
+      secretName: webapp-acme-crt-secret
+  rules:
+  - host: {{ template "webappDomainName" .}}
+    http:
+      paths:
+      - path: {{ template "path" .}}
+        backend:
+          serviceName: {{ template "serviceName" .}}
+          servicePort: 3000
+{{ end }}

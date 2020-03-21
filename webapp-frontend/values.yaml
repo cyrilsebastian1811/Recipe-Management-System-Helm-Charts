@@ -6,3 +6,5 @@ namespace: ui
 internalBackendService: ""
 dockerImage: cyrilsebastian1811/frontend:a6e8df4
 backendServiceEndpoint: ""
+
+domainName: ""
