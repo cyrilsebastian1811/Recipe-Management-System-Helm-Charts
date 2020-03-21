@@ -53,3 +53,15 @@
 {{- define "redisHost" }}
 {{- printf "%s-redis.%s.svc.cluster.local" .Release.Name .Release.Namespace }}
 {{- end }}
+
+{{- define "webappDomainName" }}
+{{- printf "%s.%s" "webapp" .Values.domainName -}}
+{{- end }}
+
+{{- define "path" }}
+{{- printf "/%s" .Release.Namespace | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "ingressName" }}
+{{- printf "%s-%s" "ingress" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
