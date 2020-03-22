@@ -73,7 +73,7 @@ pipeline {
                     sh "ls -a"
                     withKubeConfig([credentialsId: 'kubernetes_credentials', serverUrl: "${KUBERNETES_API}"]) {
                         def BACKEND_ENDPOINT = sh(returnStdout: true, script: "kubectl get svc lb-backend -n api -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'")
-                        sh("helm upgrade frontend ./webapp-frontend -n ui --install --set imageCredentials.username=${DOCKERHUB_CREDENTIALS_USR},imageCredentials.password=${DOCKERHUB_CREDENTIALS_PSW},internalBackendService=lb-backend.api,backendServiceEndpoint=${BACKEND_ENDPOINT},imageCredentials.registry=https://index.docker.io/v1/")
+                        sh("helm upgrade frontend ./webapp-frontend -n ui --install --set imageCredentials.username=${DOCKERHUB_CREDENTIALS_USR},imageCredentials.password=${DOCKERHUB_CREDENTIALS_PSW},internalBackendService=lb-backend.api,backendServiceEndpoint=http://${BACKEND_ENDPOINT}:3000,imageCredentials.registry=https://index.docker.io/v1/")
                     }
                 }
             }
