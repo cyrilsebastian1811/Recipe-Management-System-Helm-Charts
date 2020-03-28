@@ -61,7 +61,7 @@ metadata:
     app: {{ template "labelName" .}}
   namespace: {{ .Values.namespace }}
 spec:
-  replicas: 3
+  replicas: 1
   minReadySeconds: 10
   revisionHistoryLimit: 3
   strategy: 
@@ -159,10 +159,9 @@ spec:
               name: {{ template "redisSecretName" . }}
               key: REDIS_PASSWORD
         resources:
-          limits:
-            cpu: 500m
           requests:
-            cpu: 500m                               
+            cpu: 100m 
+            memory: 100Mi                              
         ports:
           - containerPort: 3000
         readinessProbe:
@@ -198,8 +197,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{template "deploymentName" .}}
-  minReplicas: 3
-  maxReplicas: 5
+  minReplicas: 1
+  maxReplicas: 3
   metrics:
   - type: Resource
     resource:
