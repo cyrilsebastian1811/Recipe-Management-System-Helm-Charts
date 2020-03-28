@@ -61,7 +61,7 @@ metadata:
     app: {{ template "labelName" .}}
   namespace: {{ .Values.namespace }}
 spec:
-  replicas: 3
+  replicas: 1
   minReadySeconds: 10
   revisionHistoryLimit: 3
   strategy: 
@@ -157,7 +157,11 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ template "redisSecretName" . }}
-              key: REDIS_PASSWORD                         
+              key: REDIS_PASSWORD
+        resources:
+          requests:
+            cpu: 100m 
+            memory: 100Mi                              
         ports:
           - containerPort: 3000
         readinessProbe:
@@ -180,6 +184,28 @@ spec:
           periodSeconds: 100  
       imagePullSecrets:
       - name: {{ template "dockerregistrykeyName" .}}
+{{ end }}
+---
+{{ if .Values.dockerImage }} 
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-{{ template "labelName" .}}
+  namespace: api
+spec:
+  scaleTargetRef:      
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{template "deploymentName" .}}
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 5
 {{ end }}
 ---
 {{ if .Values.dockerImage }}
