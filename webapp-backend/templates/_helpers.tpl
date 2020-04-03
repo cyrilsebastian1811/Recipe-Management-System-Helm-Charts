@@ -55,7 +55,7 @@
 {{- end }}
 
 {{- define "webappDomainName" }}
-{{- printf "%s.%s" "webapp" .Values.domainName -}}
+{{- printf "%s.%s" "api" .Values.domainName -}}
 {{- end }}
 
 {{- define "path" }}
