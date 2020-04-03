@@ -11,24 +11,27 @@
 
 This is a repository to store helm charts that deploy the backend and frontend of our application on a kubernetes cluster.
 
-## Backend chart installation
+## Backend chart 
+### install
 helm install backend ./webapp-backend -n api --set dbUser=team,dbPassword=Qwerty123,imageCredentials.username=<docker_hub_user_name>,imageCredentials.password=<docker_hub_password>,rdsEndpoint=<rds_endpoint>,dockerImage=<docker_hub_user_name>/<repository>:<tag>,s3Bucket=<s3_bucket_name>,awsAccess=<access_key>,awsSecret=<secret_key>,redis.global.redis.password=Yhbvft123@,domainName=<domain_name>
 
-## Backend chart uninstallation
+### uninstall
 helm uninstall backend -n api
 
 
-## Frontend chart installation
+## Frontend chart 
+### install
 helm install frontend ./webapp-frontend -n ui --set imageCredentials.username=<docker_hub_user_name>,imageCredentials.password=<docker_hub_password>,internalBackendService=lb-backend.api,dockerImage=<docker_hub_user_name>/<repository>:<tag>,backendServiceEndpoint=<backend_url>,domainName=<domain_name>
 
-## Frontend chart uninstallation
+### uninstall
 helm uninstall frontend -n ui
 
 
-## Goapp chart installation
+## Goapp chart
+### install
 helm install goapp ./webapp-goapp -n time --set imageCredentials.username=<docker_hub_user_name>,imageCredentials.password=<docker_hub_password>,dockerImage=<docker_hub_user_name>/<repository>:<tag>,domainName=<domain_name>
 
-## Goapp chart uninstallation
+### uninstall
 helm delete goapp -n time
 
 
