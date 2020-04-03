@@ -4,7 +4,7 @@ imageCredentials:
   password: ""
 namespace: time
 internalBackendService: ""
-dockerImage: cyrilsebastian1811/gowebapp:latest
+dockerImage: ""
 backendServiceEndpoint: ""
 
 domainName: ""
