@@ -42,7 +42,7 @@ kind: Deployment
 metadata:
   name: {{template "deploymentName" .}}
   labels:
-      app: {{ template "labelName" .}}
+    app: {{ template "labelName" .}}
 spec:
   replicas: 1
   minReadySeconds: 10
@@ -54,16 +54,16 @@ spec:
       maxUnavailable: 1
   selector:
     matchLabels:
-      app: gowebapp
+      app: {{ template "labelName" .}}
   template:
     metadata:
-        labels:
-            app: gowebapp
+      labels:
+        app: {{ template "labelName" .}}
     spec:
       serviceAccountName: {{ template "serviceAccountName" .}}
       containers:
         - name: gowebapp
-          image: suhas1602/gowebapp:dev2
+          image: {{ .Values.dockerImage }}
           resources:
             requests:
               cpu: 100m
