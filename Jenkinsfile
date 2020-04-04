@@ -90,6 +90,7 @@ pipeline {
                     sh "ls -a"
                     withKubeConfig([credentialsId: 'kubernetes_credentials', serverUrl: "${KUBERNETES_API}"]) {
                         sh("helm upgrade goapp ./webapp-goapp -n time --install --set imageCredentials.username=${DOCKERHUB_CREDENTIALS_USR},imageCredentials.password=${DOCKERHUB_CREDENTIALS_PSW},imageCredentials.registry=https://index.docker.io/v1/,domainName=${DOMAIN_NAME}")
+                        sh("kubectl autoscale deployment deployment-goapp --cpu-percent=2 --min=1 --max=2 -n time")
                     }
                 }
             }
