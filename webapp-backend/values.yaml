@@ -19,6 +19,7 @@ redis:
     redis:
       password: ""
   cluster:
+    slaveCount: 0
     enabled: true
   sentinel:
     enabled: true

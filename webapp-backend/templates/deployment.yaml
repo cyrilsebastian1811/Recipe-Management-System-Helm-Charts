@@ -160,7 +160,7 @@ spec:
               key: REDIS_PASSWORD
         resources:
           requests:
-            cpu: 100m 
+            cpu: 500m 
             memory: 100Mi                              
         ports:
           - containerPort: 3000
