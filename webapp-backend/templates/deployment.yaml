@@ -2,13 +2,11 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: {{ template "serviceAccountName" .}}
-  # namespace: {{ .Values.namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ template "roleName" .}}
-  # namespace: {{ .Values.namespace }}
 rules:
   - apiGroups: [""]
     resources: ["secrets", "configmaps", "services"]
@@ -18,7 +16,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ template "roleBindingName" .}}
-  # namespace: {{ .Values.namespace }}
 roleRef:
   kind: Role
   name: {{ template "roleName" .}}
@@ -32,7 +29,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ template "configMapName" . }}
-  # namespace: {{ .Values.namespace }}
 data:
   WEBAPP_PORT: "3000"
   DB_HOST_NAME: {{ .Values.rdsEndpoint }}
@@ -48,7 +44,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ template "dbsecretName" .}}
-  # namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
   DB_USER: {{ .Values.dbUser }}
@@ -58,7 +53,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ template "awssecretName" .}}
-  # namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
   AWS_ACCESS_KEY_ID: {{ .Values.awsAccess }}
@@ -68,7 +62,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ template "redisSecretName" .}}
-  # namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
   REDIS_PASSWORD: {{ .Values.redis.global.redis.password }}
@@ -77,7 +70,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ template "dockerregistrykeyName" .}}
-  # namespace: {{ .Values.namespace }}
 type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: {{ template "imagePullSecret" . }}
@@ -89,7 +81,6 @@ metadata:
   name: {{template "deploymentName" .}}
   labels:
     app: {{ template "labelName" .}}
-  # namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   minReadySeconds: 10
@@ -114,7 +105,7 @@ spec:
       initContainers:
         - name: {{ template "initContainerName" . }}
           image: goodsmileduck/redis-cli:latest
-          command: ['redis-cli', '-h', {{ include "redisHost" . | squote }}, '-p', {{ .Values.redisPort | squote }}, '-a', {{ .Values.redis.global.redis.password | squote }}, 'SET test 1 EX 10']
+          command: ['sh', '-c', 'until redis-cli -h {{include "redisHost" .}} -p {{.Values.redisPort}} -a {{.Values.redis.global.redis.password}} SET test 1 EX 10; do echo "waiting to connect to redis"; done;']
       containers:
       - name: {{ template "labelName" .}}
         image: {{ .Values.dockerImage }}
@@ -199,15 +190,8 @@ spec:
           httpGet:
             path: /
             port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 100
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 100
-        livenessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 30
           httpGet:
             path: /testCache?key=foo&val=bar
             port: 3000
@@ -218,7 +202,7 @@ spec:
 {{ end }}
 ---
 {{ if .Values.dockerImage }} 
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: hpa-{{ template "labelName" .}}
@@ -230,13 +214,7 @@ spec:
     name: {{template "deploymentName" .}}
   minReplicas: 1
   maxReplicas: 3
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 5
+  targetCPUUtilizationPercentage: 3
 {{ end }}
 ---
 {{ if .Values.dockerImage }}
