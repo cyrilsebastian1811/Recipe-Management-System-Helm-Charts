@@ -26,3 +26,5 @@ redis:
   master:
     readinessProbe:
       failureThreshold: 3
+
+domainName: ""
