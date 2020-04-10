@@ -1,8 +1,34 @@
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ template "serviceAccountName" .}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "roleName" .}}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "configmaps", "services"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "roleBindingName" .}}
+roleRef:
+  kind: Role
+  name: {{ template "roleName" .}}
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "serviceAccountName" .}}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ template "configMapName" . }}
-  namespace: {{ .Values.namespace }}
 data:
   WEBAPP_PORT: "3000"
   DB_HOST_NAME: {{ .Values.rdsEndpoint }}
@@ -18,7 +44,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ template "dbsecretName" .}}
-  namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
   DB_USER: {{ .Values.dbUser }}
@@ -28,7 +53,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ template "awssecretName" .}}
-  namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
   AWS_ACCESS_KEY_ID: {{ .Values.awsAccess }}
@@ -38,7 +62,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ template "redisSecretName" .}}
-  namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
   REDIS_PASSWORD: {{ .Values.redis.global.redis.password }}
@@ -47,7 +70,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ template "dockerregistrykeyName" .}}
-  namespace: {{ .Values.namespace }}
 type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: {{ template "imagePullSecret" . }}
@@ -59,7 +81,6 @@ metadata:
   name: {{template "deploymentName" .}}
   labels:
     app: {{ template "labelName" .}}
-  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   minReadySeconds: 10
@@ -80,10 +101,11 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"  
     spec:
+      serviceAccountName: {{ template "serviceAccountName" .}}
       initContainers:
         - name: {{ template "initContainerName" . }}
           image: goodsmileduck/redis-cli:latest
-          command: ['redis-cli', '-h', {{ include "redisHost" . | squote }}, '-p', {{ .Values.redisPort | squote }}, '-a', {{ .Values.redis.global.redis.password | squote }}, 'SET test 1 EX 10']
+          command: ['sh', '-c', 'until redis-cli -h {{include "redisHost" .}} -p {{.Values.redisPort}} -a {{.Values.redis.global.redis.password}} SET test 1 EX 10; do echo "waiting to connect to redis"; done;']
       containers:
       - name: {{ template "labelName" .}}
         image: {{ .Values.dockerImage }}
@@ -157,26 +179,19 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ template "redisSecretName" . }}
-              key: REDIS_PASSWORD
+              key: REDIS_PASSWORD   
         resources:
           requests:
             cpu: 500m 
-            memory: 100Mi                              
+            memory: 100Mi                       
         ports:
           - containerPort: 3000
         readinessProbe:
           httpGet:
             path: /
             port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 100
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 100
-        livenessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 30
           httpGet:
             path: /testCache?key=foo&val=bar
             port: 3000
@@ -187,7 +202,7 @@ spec:
 {{ end }}
 ---
 {{ if .Values.dockerImage }} 
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: hpa-{{ template "labelName" .}}
@@ -199,13 +214,7 @@ spec:
     name: {{template "deploymentName" .}}
   minReplicas: 1
   maxReplicas: 3
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 5
+  targetCPUUtilizationPercentage: 3
 {{ end }}
 ---
 {{ if .Values.dockerImage }}
@@ -215,13 +224,42 @@ metadata:
   name: {{ template "serviceName" .}}
   labels:
     name: {{ template "labelName" .}}
-  namespace: {{ .Values.namespace }}
+  # namespace: {{ .Values.namespace }}
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
     - protocol: TCP
       port: 3000
       targetPort: 3000
   selector:
-      app: {{ template "labelName" .}}
-{{ end }} 
+    app: {{ template "labelName" .}}
+{{ end }}
+---
+{{ if .Values.dockerImage }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "ingressName" .}}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls: # < placing a host in the TLS config will indicate a certificate should be created
+    - hosts:
+        - {{ template "webappDomainName" .}}
+      secretName: webapp-acme-crt-secret
+  rules:
+  - host: {{ template "webappDomainName" .}}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "serviceName" .}}
+          servicePort: 3000
+      # - path: {{ template "path" .}}
+      #   backend:
+      #     serviceName: {{ template "serviceName" .}}
+      #     servicePort: 3000
+{{ end }}

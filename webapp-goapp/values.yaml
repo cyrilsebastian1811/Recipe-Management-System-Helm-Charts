@@ -2,9 +2,8 @@ imageCredentials:
   registry: https://index.docker.io/v1/
   username: ""
   password: ""
-namespace: ui
+namespace: time
 internalBackendService: ""
-dockerImage: cyrilsebastian1811/frontend:a6e8df4
+dockerImage: cyrilsebastian1811/goapp:29b3f67
 backendServiceEndpoint: ""
-
 domainName: ""

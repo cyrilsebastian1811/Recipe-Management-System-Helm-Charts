@@ -25,3 +25,27 @@
 {{- define "serviceName" }}
 {{- printf "%s-%s" "lb" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
+
+{{- define "serviceAccountName" }}
+{{- printf "%s-%s" "sa" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "roleName" }}
+{{- printf "%s-%s" "role" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "roleBindingName" }}
+{{- printf "%s-%s" "rolebinding" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "webappDomainName" }}
+{{- printf "%s.%s" "ui" .Values.domainName -}}
+{{- end }}
+
+{{- define "path" }}
+{{- printf "/%s" .Release.Namespace | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "ingressName" }}
+{{- printf "%s-%s" "ingress" .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}

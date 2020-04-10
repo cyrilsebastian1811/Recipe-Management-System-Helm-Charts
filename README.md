@@ -11,16 +11,28 @@
 
 This is a repository to store helm charts that deploy the backend and frontend of our application on a kubernetes cluster.
 
-# To install chart
-helm install example ./webapp-backend -n api --set dbUser=team,dbPassword=,imageCredentials.username=suhas1602,imageCredentials.password=,rdsEndpoint=csye7374-db.cqbcoqyivrty.us-east-1.rds.amazonaws.com,dockerImage=suhas1602/webapp-backend:dev3,s3Bucket=webapp.suhaspasricha.com,awsAccess=,awsSecret=,redis.global.redis.password=,imageCredentials.registry=https://index.docker.io/v1/
+## Backend chart 
+### install
+helm install backend ./webapp-backend -n api --set dbUser=team,dbPassword=Qwerty123,imageCredentials.username=<docker_hub_user_name>,imageCredentials.password=<docker_hub_password>,rdsEndpoint=<rds_endpoint>,dockerImage=<docker_hub_user_name>/<repository>:<tag>,s3Bucket=<s3_bucket_name>,awsAccess=<access_key>,awsSecret=<secret_key>,redis.global.redis.password=Yhbvft123@,domainName=<domain_name>
+
+### uninstall
+helm uninstall backend -n api
 
 
-# To uninstall chart
-helm uninstall example -n api
+## Frontend chart 
+### install
+helm install frontend ./webapp-frontend -n ui --set imageCredentials.username=<docker_hub_user_name>,imageCredentials.password=<docker_hub_password>,internalBackendService=lb-backend.api,dockerImage=<docker_hub_user_name>/<repository>:<tag>,backendServiceEndpoint=<backend_url>,domainName=<domain_name>
+
+### uninstall
+helm uninstall frontend -n ui
 
 
-# Frontend chart
-helm install example2 ./webapp-frontend -n ui --set imageCredentials.username=suhas1602,imageCredentials.password=,internalBackendService=backendlb-example.api,dockerImage=suhas1602/webapp-frontend:2a1e4eb5d195682b40d85d78b8d8085d2b351561,backendServiceEndpoint=http://a510804d8cb74426d960b71c9faccc01-1367718300.us-east-1.elb.amazonaws.com:3000,imageCredentials.registry=https://index.docker.io/v1/
+## Goapp chart
+### install
+helm install goapp ./webapp-goapp -n time --set imageCredentials.username=<docker_hub_user_name>,imageCredentials.password=<docker_hub_password>,dockerImage=<docker_hub_user_name>/<repository>:<tag>,domainName=<domain_name>
+
+### uninstall
+helm delete goapp -n time
 
 
 ## Jenkins
@@ -61,6 +73,7 @@ Token: QAZwsx123>
 3. S3_BUCKET_URL --> webapp.dev.cyril-sebastian.com
 4. RDS_ENDPOINT --> csye7374-db.cz6rkkjdva3j.us-east-1.rds.amazonaws.com
 5. KUBERNETES_API --> https://api.k8.dev.cyril-sebastian.com
+6. DOMAIN_NAME --> dev.cyril-sebastian.com
 #### Password Parameters
 3. AWS_ACCESS_KEY_ID --> xxxxxxxxxxxxxxx
 4. AWS_SECRET_ACCESS_KEY --> xxxxxxxxxxxxxxx
